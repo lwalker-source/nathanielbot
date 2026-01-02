@@ -36,9 +36,18 @@ intents.message_content = True
 
 client = MyClient(intents=intents)
 
+async def on_message(self, message):
+   if message.author == self.user:
+      return
+   
+   if message.content.startswith('$hello'):
+      await message.channel.send('Hello!')
+
 # Get token from environment variable
 token = os.getenv('DISCORD_BOT_TOKEN')
 if not token:
     raise ValueError("DISCORD_BOT_TOKEN environment variable is not set!")
 
 client.run(token)
+
+
