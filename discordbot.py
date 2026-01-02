@@ -3,6 +3,27 @@ import os
 import certifi
 import ssl
 from dotenv import load_dotenv
+import requests
+import json
+import asyncio
+
+async def get_meme():
+  loop = asyncio.get_event_loop()
+  response = await loop.run_in_executor(None, lambda: requests.get('https://meme-api.com/gimme'))
+  json_data = json.loads(response.text)
+  return json_data['url']
+
+class MyClient(discord.Client):
+  async def on_ready(self):
+    print('Logged on as {0}!'.format(self.user))
+
+  async def on_message(self, message):
+    if message.author == self.user:
+      return
+
+    if message.content.startswith('$meme'):
+      meme_url = await get_meme()
+      await message.channel.send(meme_url)
 
 # Load environment variables from .env file
 load_dotenv()
@@ -26,17 +47,6 @@ def _patched_init(self, *args, ssl=None, **kwargs):
     _original_init(self, *args, ssl=ssl, **kwargs)
 
 aiohttp.connector.TCPConnector.__init__ = _patched_init
-
-class MyClient(discord.Client):
-  async def on_ready(self):
-    print('Logged on as {0}!'.format(self.user))
-
-  async def on_message(self, message):
-    if message.author == self.user:
-      return
-    
-    if message.content.startswith('$hello'):
-      await message.channel.send('Hello!')
 
 intents = discord.Intents.default()
 intents.message_content = True
